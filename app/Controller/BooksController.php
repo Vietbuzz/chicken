@@ -21,8 +21,17 @@ class BooksController extends AppController {
  * @return void
  */
 	public function index() {
-		$this->Book->recursive = 0;
-		$this->set('books', $this->Paginator->paginate());
+		//$this->Book->recursive = 0;
+		//$this->set('books', $this->Paginator->paginate());
+		$books = $this->Book->find('all', array(
+			'fields'=> array('title', 'image', 'sale_price'),
+			'order'=> array('created'=> 'desc'),
+			'limit' => 10,
+			'contain' => array('Writer' => array(
+				'fields'=>'name'
+			))
+		));
+		$this->set('books', $books);
 	}
 
 /**
@@ -108,8 +117,15 @@ class BooksController extends AppController {
 		return $this->redirect(array('action' => 'index'));
 	}
 
+	/**
+	 * function truyvan
+	 */
+
 	public function truyvan(){
-		$book = $this->Book->find('first');
+		$book = $this->Book->find('first', array(
+			'fields' => array('id', 'title'),
+			'contain' => 'Writer',
+		));
 		echo '<meta charset="UTF-8">';
 		pr($book);
 		exit;

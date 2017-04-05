@@ -8,6 +8,7 @@ App::uses('AppModel', 'Model');
  * @property Writer $Writer
  */
 class Book extends AppModel {
+	public $actsAs = array('Containable');
 
 /**
  * Validation rules
