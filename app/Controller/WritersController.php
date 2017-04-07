@@ -21,8 +21,16 @@ class WritersController extends AppController {
  * @return void
  */
 	public function index() {
-		$this->Writer->recursive = 0;
-		$this->set('writers', $this->Paginator->paginate());
+		//$this->Writer->recursive = 0;
+		$this->paginate = array(
+			'limit'=>5,
+			'fields'=> array('name', 'slug'),
+			'order'=> array('name', 'desc'),
+			'paramType'=>'querystring'
+		);
+
+		$writers = $this->paginate();
+		$this->set('writers', $writers);
 	}
 
 /**
@@ -32,12 +40,46 @@ class WritersController extends AppController {
  * @param string $id
  * @return void
  */
-	public function view($id = null) {
-		if (!$this->Writer->exists($id)) {
-			throw new NotFoundException(__('Invalid writer'));
+	public function view($slug = null) {
+		$options = array(
+			'conditions' => array('Writer.slug'=> $slug),
+			'recursive' => -1
+		);
+		$writer = $this->Writer->find('first', $options);
+		if (empty($writer)) {
+			throw new NotFoundException(__('Chưa có tác giả này !'));
 		}
-		$options = array('conditions' => array('Writer.' . $this->Writer->primaryKey => $id));
-		$this->set('writer', $this->Writer->find('first', $options));
+
+		$this->set('writer', $writer);
+		//Phân trang sách liên quan
+		$this->paginate = array(
+			'limit'=>5,
+			'contain'=>array(
+				'Category'=>array(
+					'fields'=>'name'
+				),
+				'Writer'=>array('fields'=>array('name', 'slug'))
+			),
+			'joins'=>array(
+				array(
+					'table' => 'books_writers',
+					'alias' => 'Writer',
+					'conditions'=> 'BookWriter.book_id = Writer.id'
+				),
+				array(
+					'table' => 'writers',
+					'alias' => 'Writer',
+					'conditions'=> 'BookWriter.writer_id = Book.id'
+				)
+			),
+			'conditions'=>array(
+				'published'=>1,
+				'Writer.slug'=>$slug
+			),
+			'paramType'=> 'querystring'
+		);
+		$books = $this->paginate();
+		$this->set('books', $books);
 	}
 
 /**

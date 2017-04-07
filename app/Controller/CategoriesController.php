@@ -32,12 +32,33 @@ class CategoriesController extends AppController {
  * @param string $id
  * @return void
  */
-	public function view($id = null) {
-		if (!$this->Category->exists($id)) {
-			throw new NotFoundException(__('Invalid category'));
+	public function view($slug = null) {
+		$options = array(
+			'conditions' => array('Category.slug' => $slug),
+			'recursive' => -1
+		);
+		$category = $this->Category->find('first', $options);
+		if (empty($category)) {
+			throw new NotFoundException(__('Chưa có danh mục sách này !'));
 		}
-		$options = array('conditions' => array('Category.' . $this->Category->primaryKey => $id));
-		$this->set('category', $this->Category->find('first', $options));
+		$this->set('category', $category);
+		//Phân trang dữ liệu
+		$this->paginate = array(
+			'limit'=>5,
+			'contain'=>array(
+				'Category'=>array(
+					'fields'=>array('name', 'slug')
+				),
+				'Writer'=>array('fields'=>array('name', 'slug'))
+			),
+			'conditions'=>array(
+				'published'=>1,
+				'Category.slug'=>$slug
+			),
+			'paramType'=> 'querystring'
+		);
+		$books = $this->paginate('Book');
+		$this->set('books', $books);
 	}
 
 /**

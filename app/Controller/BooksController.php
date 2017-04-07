@@ -8,6 +8,10 @@ App::uses('AppController', 'Controller');
  */
 class BooksController extends AppController {
 
+	//public $components = array('Paginator');
+
+
+
 /**
  * Components
  *
@@ -23,14 +27,8 @@ class BooksController extends AppController {
 	public function index() {
 		//$this->Book->recursive = 0;
 		//$this->set('books', $this->Paginator->paginate());
-		$books = $this->Book->find('all', array(
-			'fields'=> array('title', 'image', 'sale_price'),
-			'order'=> array('created'=> 'desc'),
-			'limit' => 10,
-			'contain' => array('Writer' => array(
-				'fields'=>'name'
-			))
-		));
+		$books = $this->Book->latest();
+		//pr($books); exit();
 		$this->set('books', $books);
 	}
 
@@ -41,12 +39,15 @@ class BooksController extends AppController {
  * @param string $id
  * @return void
  */
-	public function view($id = null) {
-		if (!$this->Book->exists($id)) {
-			throw new NotFoundException(__('Invalid book'));
+	public function view($slug = null) {
+		$options = array(
+			'conditions' => array('Book.slug'=> $slug)
+		);
+		$book = $this->Book->find('first', $options);
+		if (empty($book)) {
+			throw new NotFoundException(__('Không có quyển sách này !'));
 		}
-		$options = array('conditions' => array('Book.' . $this->Book->primaryKey => $id));
-		$this->set('book', $this->Book->find('first', $options));
+		$this->set('book', $book);
 	}
 
 /**
@@ -129,6 +130,27 @@ class BooksController extends AppController {
 		echo '<meta charset="UTF-8">';
 		pr($book);
 		exit;
+	}
+
+	/**
+	 * latest_book
+	 * list and paginate books page
+	 *
+	 */
+
+	public function latest_books(){
+		$this->paginate = array(
+			'limit'=>5,
+			'contain'=>array(
+				'Category'=>array(
+					'fields'=>'name'
+				),
+				'Writer'=>array('fields'=>array('name', 'slug'))
+			),
+			'paramType'=> 'querystring'
+		);
+		$books = $this->paginate();
+		$this->set('books', $books);
 	}
 }
 

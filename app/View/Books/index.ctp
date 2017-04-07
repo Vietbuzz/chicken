@@ -1,10 +1,7 @@
 <div class="books index">
-	<h2><?php echo __('Books'); ?></h2>
-	<?php pr($books); ?>
-	<?php foreach($books as $book): ?>
-		<?php echo $book['Book']['title']; ?> <br>
-		<?php echo $book['Book']['image']; ?> <br>
-		<?php echo $book['Book']['sale_price']; ?> <br>
-	<?php endforeach ?>
+	<h2><?php echo __('Sách mới'); ?></h2>
+	<h4><?php echo $this->Html->link('Xem thêm', '/sach-moi'); ?></h4>
+	<?php //pr($books); ?>
+	<?php echo $this->element('books', array('books'=>$books)); ?>
 </div>
 
