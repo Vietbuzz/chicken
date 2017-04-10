@@ -63,13 +63,13 @@ class WritersController extends AppController {
 			'joins'=>array(
 				array(
 					'table' => 'books_writers',
-					'alias' => 'Writer',
-					'conditions'=> 'BookWriter.book_id = Writer.id'
+					'alias' => 'BookWriter',
+					'conditions'=> 'BookWriter.book_id = Book.id'
 				),
 				array(
 					'table' => 'writers',
 					'alias' => 'Writer',
-					'conditions'=> 'BookWriter.writer_id = Book.id'
+					'conditions'=> 'BookWriter.writer_id = Writer.id'
 				)
 			),
 			'conditions'=>array(
@@ -78,7 +78,7 @@ class WritersController extends AppController {
 			),
 			'paramType'=> 'querystring'
 		);
-		$books = $this->paginate();
+		$books = $this->paginate('Book');
 		$this->set('books', $books);
 	}
 

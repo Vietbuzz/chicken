@@ -47,17 +47,26 @@ class CommentsController extends AppController {
  */
 	public function add() {
 		if ($this->request->is('post')) {
-			$this->Comment->create();
-			if ($this->Comment->save($this->request->data)) {
-				$this->Session->setFlash(__('The comment has been saved.'));
-				return $this->redirect(array('action' => 'index'));
+			$this->Comment->set($this->request->data);
+			if($this->Comment->validates()){
+				$this->Comment->create();
+				if ($this->Comment->save($this->request->data)) {
+					$this->Session->setFlash(__('Đã gửi nhận xét.'));
+					//return $this->redirect(array('action' => 'index'));
+
+				} else {
+					$this->Session->setFlash(__('Chưa gửi được vui lòng thử lại.'));
+				}
 			} else {
-				$this->Session->setFlash(__('The comment could not be saved. Please, try again.'));
+				$comment_errors = $this->Comment->validationErrors;
+				$this->Session->write('comment_errors', $comment_errors);
 			}
+			$this->redirect($this->referer());
+
 		}
-		$users = $this->Comment->User->find('list');
-		$books = $this->Comment->Book->find('list');
-		$this->set(compact('users', 'books'));
+//		$users = $this->Comment->User->find('list');
+//		$books = $this->Comment->Book->find('list');
+//		$this->set(compact('users', 'books'));
 	}
 
 /**

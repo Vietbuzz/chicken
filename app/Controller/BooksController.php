@@ -41,13 +41,54 @@ class BooksController extends AppController {
  */
 	public function view($slug = null) {
 		$options = array(
-			'conditions' => array('Book.slug'=> $slug)
+			'conditions' => array('Book.slug'=> $slug),
+			'contain' => array(
+				'Writer'=>array('name', 'slug')
+			)
 		);
 		$book = $this->Book->find('first', $options);
 		if (empty($book)) {
 			throw new NotFoundException(__('Không có quyển sách này !'));
 		}
 		$this->set('book', $book);
+
+		//comment
+		$this->loadModel('Comment');
+		$comments = $this->Comment->find('all',array(
+			'conditions'=>array(
+				'book_id' => $book['Book']['id']
+			),
+			'order'=>array('Comment.created'=>'asc'),
+			'contain'=> array(
+				'User' =>array('username')
+			)
+		));
+		//pr($comment);
+		$this->set('coments', $comments);
+
+		//related books
+		$related_books = $this->Book->find('all', array(
+			'fields'=> array('title', 'image', 'sale_price', 'slug'),
+			'conditions'=>array(
+				'category_id'=>$book['Book']['category_id'],
+				'Book.id <>' =>$book['Book']['id'],
+				'published' =>1
+			),
+			'limit' => 5,
+			'order' => 'rand()',
+			'contain'=> array(
+				'Writer'=> array('name', 'slug')
+			)
+		));
+
+		$this->set('related_books', $related_books);
+
+		if($this->Session->check('comment_errors')){
+			$errors = $this->Session->read('comment_errors');
+			$this->set('errors', $errors);
+			$this->Session->delete('comment_errors');
+		}
+
 	}
 
 /**
@@ -152,6 +193,61 @@ class BooksController extends AppController {
 		$books = $this->paginate();
 		$this->set('books', $books);
 	}
+
+	public function search(){
+		$notFound = false;
+		if($this->request->is('post')){
+			$keyword = $this->request->data['Book']['keyword'];
+			$books = $this->Book->find('all', array(
+				'fields' => array('title', 'image', 'sale_price', 'slug'),
+				'contain' => array('Writer.name', 'Writer.slug'),
+				'order' => array('Book.created'=>'desc'),
+				'conditions' => array(
+					'published' => 1,
+					'or' => array(
+						'title like' => '%'.$keyword.'%',
+						'Writer.name like' => '%'.$keyword.'%',
+					)
+				),
+				'joins' => array(
+					array(
+						'table'=> 'books_writers',
+						'alias'=>'BookWriter',
+						'conditions' => 'BookWriter.book_id = Book.id'
+					),
+					array(
+						'table'=> 'writers',
+						'alias'=> 'Writer',
+						'conditions' => 'BookWriter.writer_id = Writer.id'
+					)
+				)
+			));
+			if(!empty($books)){
+				$this->set('results', $books);
+			} else {
+				$notFound = true;
+			}
+
+		}
+		$this->set('notFound', $notFound);
+	}
+
+
+//	public function update_comment(){
+//		$books = $this->Book->find('all', array(
+//			'fields' => 'id',
+//			'contain' => 'Comment'
+//		));
+//		//pr($book);
+//		foreach($books as $book){
+//			if(count($book['Comment'])>0){
+//				$this->Book->updateAll(
+//					array('comment_count'=>count($book['Comment'])),
+//					array('Book.id'=>$book['Book']['id'])
+//				);
+//			};
+//		}
+//	}
 }
 
 

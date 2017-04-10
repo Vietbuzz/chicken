@@ -34,7 +34,7 @@ Router::connect('/sach-moi', array('controller'=>'books', 'action'=> 'latest_boo
 Router::connect('/tac-gia', array('controller'=>'writers', 'action'=>'index'));
 Router::connect('/:book_title', array('controller'=>'books', 'action'=>'view'), array('pass'=>array('book_title')));
 Router::connect('/danh-muc/*', array('controller'=>'categories', 'action'=>'view'));
-Router::connect('/tac-gia/:writer_name', array('controller'=>'writers', 'action'=>'view'), array('pass'=>array('writer_name')));
+Router::connect('/tac-gia/*', array('controller'=>'writers', 'action'=>'view'));
 /**
  * Load all plugin routes. See the CakePlugin documentation on
  * how to customize the loading of plugin routes.
