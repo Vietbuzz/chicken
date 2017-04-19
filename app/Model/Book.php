@@ -16,6 +16,10 @@ class Book extends AppModel {
  * @var array
  */
 	public $validate = array(
+		'keyword'=> array(
+			'rule'=> 'notempty',
+			'message' => 'chưa nhập từ khóa...'
+		),
 		'title' => array(
 			'notEmpty' => array(
 				'rule' => array('notEmpty'),

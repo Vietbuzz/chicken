@@ -15,6 +15,23 @@ class UsersController extends AppController {
  */
 	public $components = array('Paginator');
 
+
+	public function login(){
+		if($this->request->is('post')){
+			if($this->Auth->login()){
+				$this->redirect($this->Auth->redirect());
+			} else {
+				$this->Session->setFlash('Sai mat khau', 'default', array('class'=> 'alert alert-danger'), 'auth');
+			}
+		}
+		$this->set('title_for_layout', 'Đăng nhập - ChickenRainshop');
+		pr($this->Auth->password('admin'));
+
+	}
+
+	public function logout(){
+		$this->redirect($this->Auth->logout());
+	}
 /**
  * index method
  *

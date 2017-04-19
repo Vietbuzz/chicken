@@ -1,5 +1,5 @@
 <div class="books form">
-<?php echo $this->Form->create('Book'); ?>
+<?php echo $this->Form->create('Book', array('type'=>'file')); ?>
 	<fieldset>
 		<legend><?php echo __('Edit Book'); ?></legend>
 	<?php
@@ -7,7 +7,8 @@
 		echo $this->Form->input('category_id');
 		echo $this->Form->input('title');
 		echo $this->Form->input('slug');
-		echo $this->Form->input('image');
+		echo $this->Html->image($this->request->data['Book']['image'], array('width'=>140, 'height'=>200));
+		echo $this->Form->input('image', array('label'=>'', 'type'=>'file'));
 		echo $this->Form->input('info');
 		echo $this->Form->input('price');
 		echo $this->Form->input('sale_price');

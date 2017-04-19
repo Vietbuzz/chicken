@@ -15,6 +15,16 @@ class CategoriesController extends AppController {
  */
 	public $components = array('Paginator');
 
+
+	public function menu(){
+		if($this->request->is('requested')){
+			$categories = $this->Category->find('all', array(
+				'recursive'=> -1,
+				'order' => array('name'=>'asc')
+			));
+			return $categories;
+		}
+	}
 /**
  * index method
  *

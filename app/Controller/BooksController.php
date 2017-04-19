@@ -1,5 +1,6 @@
 <?php
 App::uses('AppController', 'Controller');
+App::uses('File', 'Utility');
 /**
  * Books Controller
  *
@@ -123,6 +124,15 @@ class BooksController extends AppController {
 			throw new NotFoundException(__('Invalid book'));
 		}
 		if ($this->request->is(array('post', 'put'))) {
+			$this->loadModel('Category');
+			$categories = $this->Category->findById($this->request->data['Book']['category_id']);
+			if(!$this->uploadFile($category['Category']['folder'])){
+				$location = '/files/'.$category['Category']['folder'].'/'.$this->request->data['Book']['image']['name'].
+				$this->request->data['Book']['image'] = $location;
+
+			}else {
+				$this->Session->setFlash(__('Khoong up duoc.'));
+			}
 			if ($this->Book->save($this->request->data)) {
 				$this->Session->setFlash(__('The book has been saved.'));
 				return $this->redirect(array('action' => 'index'));
@@ -138,6 +148,19 @@ class BooksController extends AppController {
 		$this->set(compact('categories', 'writers'));
 	}
 
+
+	/**
+	 * @param null $folder
+	 */
+	private function uploadFile($folder = null){
+	$file = new File($this->request->data['Book']['image']['tmp_name']);
+		$file_name = $this->request->data['Book']['image']['name'];
+		if($file->copy(APP.'webroot/files/'.$folder.'/'.$file_name)){
+			return true;
+		}else {
+			return false;
+		}
+	}
 /**
  * delete method
  *
@@ -194,39 +217,53 @@ class BooksController extends AppController {
 		$this->set('books', $books);
 	}
 
+	public function testup(){
+		if(!empty( $this->request->data)){
+			$file = $this->data['Book']['image'];
+			move_uploaded_file($file['tmp_name'], WWW_ROOT . 'img/uploads' . $file['name']);
+		}
+	}
+
 	public function search(){
 		$notFound = false;
 		if($this->request->is('post')){
-			$keyword = $this->request->data['Book']['keyword'];
-			$books = $this->Book->find('all', array(
-				'fields' => array('title', 'image', 'sale_price', 'slug'),
-				'contain' => array('Writer.name', 'Writer.slug'),
-				'order' => array('Book.created'=>'desc'),
-				'conditions' => array(
-					'published' => 1,
-					'or' => array(
-						'title like' => '%'.$keyword.'%',
-						'Writer.name like' => '%'.$keyword.'%',
-					)
-				),
-				'joins' => array(
-					array(
-						'table'=> 'books_writers',
-						'alias'=>'BookWriter',
-						'conditions' => 'BookWriter.book_id = Book.id'
+			$this->Book->set($this->request->data);
+			if($this->Book->validates()){
+				$keyword = $this->request->data['Book']['keyword'];
+				$books = $this->Book->find('all', array(
+					'fields' => array('title', 'image', 'sale_price', 'slug'),
+					'contain' => array('Writer.name', 'Writer.slug'),
+					'order' => array('Book.created'=>'desc'),
+					'conditions' => array(
+						'published' => 1,
+						'or' => array(
+							'title like' => '%'.$keyword.'%',
+							'Writer.name like' => '%'.$keyword.'%',
+						)
 					),
-					array(
-						'table'=> 'writers',
-						'alias'=> 'Writer',
-						'conditions' => 'BookWriter.writer_id = Writer.id'
+					'joins' => array(
+						array(
+							'table'=> 'books_writers',
+							'alias'=>'BookWriter',
+							'conditions' => 'BookWriter.book_id = Book.id'
+						),
+						array(
+							'table'=> 'writers',
+							'alias'=> 'Writer',
+							'conditions' => 'BookWriter.writer_id = Writer.id'
+						)
 					)
-				)
-			));
-			if(!empty($books)){
-				$this->set('results', $books);
+				));
+				if(!empty($books)){
+					$this->set('results', $books);
+				} else {
+					$notFound = true;
+				}
 			} else {
-				$notFound = true;
+				$errors = $this->Book->validationErrors;
+				$this->set('errors', $errors);
 			}
+
 
 		}
 		$this->set('notFound', $notFound);
